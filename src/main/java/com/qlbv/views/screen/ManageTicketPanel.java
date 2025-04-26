@@ -10,7 +10,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -27,29 +27,37 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
+import com.qlbv.model.dao.ChiTietHDDAO;
+import com.qlbv.model.dao.GheDAO;
+import com.qlbv.model.dao.HoaDonDAO;
+import com.qlbv.model.dao.LichChieuDAO;
 import com.qlbv.model.dao.VeDAO;
+import com.qlbv.model.entities.ChiTietHD;
 import com.qlbv.model.entities.Ve;
 
 public class ManageTicketPanel extends JPanel {
-    private static final long serialVersionUID = 1L;
     
-    // Table components
-    private JTextField txtSearch;
-    private JComboBox<String> cboStatus;
-    private JComboBox<String> cboTimeFilter;
+    // Components
+    private JTextField txtMaHD;
+    private JComboBox<String> cbMaVe;
     private JButton btnSearch;
+    private JButton btnPrint;
+    private JButton btnDelete;
     private JTable tblTickets;
     private DefaultTableModel tableModel;
     
     private VeDAO veDAO;
-    private List<Ve> danhSachVe;
+    private HoaDonDAO hoaDonDAO;
+    private ChiTietHDDAO chiTietHDDAO;
+    private SimpleDateFormat dateFormat;
     
     public ManageTicketPanel() {
         veDAO = new VeDAO();
-        danhSachVe = new ArrayList<>();
+        hoaDonDAO = new HoaDonDAO();
+        chiTietHDDAO = new ChiTietHDDAO();
+        dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         
         initializeUI();
-        loadData();
     }
     
     private void initializeUI() {
@@ -73,57 +81,78 @@ public class ManageTicketPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
         
-        // Search field
-        JLabel lblSearch = new JLabel("Tìm kiếm vé:");
-        lblSearch.setFont(new Font("Arial", Font.BOLD, 13));
+        // Mã hóa đơn
+        JLabel lblMaHD = new JLabel("Mã hóa đơn:");
+        lblMaHD.setFont(new Font("Arial", Font.BOLD, 13));
         gbc.gridx = 0;
         gbc.gridy = 0;
-        pnlSearch.add(lblSearch, gbc);
+        gbc.weightx = 0;
+        pnlSearch.add(lblMaHD, gbc);
         
-        txtSearch = new JTextField();
-        txtSearch.setPreferredSize(new Dimension(200, 30));
-        txtSearch.setFont(new Font("Arial", Font.PLAIN, 13));
+        txtMaHD = new JTextField();
+        txtMaHD.setPreferredSize(new Dimension(200, 30));
+        txtMaHD.setFont(new Font("Arial", Font.PLAIN, 13));
         gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        pnlSearch.add(txtSearch, gbc);
+        gbc.weightx = 1;
+        pnlSearch.add(txtMaHD, gbc);
         
-        // Status filter
-        JLabel lblStatus = new JLabel("Trạng thái:");
-        lblStatus.setFont(new Font("Arial", Font.BOLD, 13));
-        gbc.gridx = 2;
-        gbc.weightx = 0.0;
-        pnlSearch.add(lblStatus, gbc);
-        
-        cboStatus = new JComboBox<>(new String[]{"Tất cả", "Đã bán", "Đã dùng", "Đã hủy", "Chờ dùng"});
-        cboStatus.setPreferredSize(new Dimension(120, 30));
-        cboStatus.setFont(new Font("Arial", Font.PLAIN, 13));
-        gbc.gridx = 3;
-        pnlSearch.add(cboStatus, gbc);
-        
-        // Time filter
-        JLabel lblTime = new JLabel("Thời gian:");
-        lblTime.setFont(new Font("Arial", Font.BOLD, 13));
-        gbc.gridx = 4;
-        pnlSearch.add(lblTime, gbc);
-        
-        cboTimeFilter = new JComboBox<>(new String[]{"Hôm nay", "Tuần này", "Tháng này", "Tất cả"});
-        cboTimeFilter.setPreferredSize(new Dimension(120, 30));
-        cboTimeFilter.setFont(new Font("Arial", Font.PLAIN, 13));
-        gbc.gridx = 5;
-        pnlSearch.add(cboTimeFilter, gbc);
-        
-        // Search button
-        btnSearch = new JButton("Tìm");
-        btnSearch.setPreferredSize(new Dimension(80, 30));
+        btnSearch = new JButton("Tìm kiếm");
+        btnSearch.setPreferredSize(new Dimension(100, 30));
         btnSearch.setBackground(new Color(52, 152, 219));
         btnSearch.setForeground(Color.WHITE);
         btnSearch.setFont(new Font("Arial", Font.BOLD, 13));
-        gbc.gridx = 6;
+        gbc.gridx = 2;
+        gbc.weightx = 0;
         pnlSearch.add(btnSearch, gbc);
+        
+        // Mã vé (ComboBox) và các nút
+        JLabel lblMaVe = new JLabel("Mã vé:");
+        lblMaVe.setFont(new Font("Arial", Font.BOLD, 13));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        pnlSearch.add(lblMaVe, gbc);
+        
+        cbMaVe = new JComboBox<>();
+        cbMaVe.setPreferredSize(new Dimension(200, 30));
+        cbMaVe.setFont(new Font("Arial", Font.PLAIN, 13));
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        pnlSearch.add(cbMaVe, gbc);
+        
+        JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        pnlButtons.setOpaque(false);
+        btnPrint = new JButton("In vé");
+        btnPrint.setPreferredSize(new Dimension(100, 30));
+        btnPrint.setBackground(new Color(46, 204, 113));
+        btnPrint.setForeground(Color.WHITE);
+        btnPrint.setFont(new Font("Arial", Font.BOLD, 13));
+        pnlButtons.add(btnPrint);
+        btnDelete = new JButton("Xóa vé");
+        btnDelete.setPreferredSize(new Dimension(100, 30));
+        btnDelete.setBackground(new Color(231, 76, 60));
+        btnDelete.setForeground(Color.WHITE);
+        btnDelete.setFont(new Font("Arial", Font.BOLD, 13));
+        pnlButtons.add(btnDelete);
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        pnlSearch.add(pnlButtons, gbc);
         
         // Add action listeners
         btnSearch.addActionListener(e -> performSearch());
-        txtSearch.addKeyListener(new KeyAdapter() {
+        btnPrint.addActionListener(e -> {
+            // TODO: Thêm chức năng in vé
+        });
+        btnDelete.addActionListener(e -> {
+            String maVe = (String) cbMaVe.getSelectedItem();
+            if (maVe != null && !maVe.isEmpty()) {
+                if (veDAO.xoaVe(maVe)) {
+                    performSearch();
+                }
+            }
+        });
+        
+        txtMaHD.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
@@ -148,11 +177,10 @@ public class ManageTicketPanel extends JPanel {
         
         // Add columns
         tableModel.addColumn("Mã vé");
-        tableModel.addColumn("Tên phim");
-        tableModel.addColumn("Khách hàng");
-        tableModel.addColumn("Thời gian");
-        tableModel.addColumn("Trạng thái");
-        tableModel.addColumn("Thao tác");
+        tableModel.addColumn("Mã ghế");
+        tableModel.addColumn("Phòng");
+        tableModel.addColumn("Mã lịch chiếu");
+        tableModel.addColumn("Giá vé");
         
         // Create table
         tblTickets = new JTable(tableModel);
@@ -167,133 +195,56 @@ public class ManageTicketPanel extends JPanel {
         header.setForeground(Color.WHITE);
         header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
         
-        // Center align all columns except the last one
+        // Center align all columns
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         
-        for (int i = 0; i < tblTickets.getColumnCount() - 1; i++) {
+        for (int i = 0; i < tblTickets.getColumnCount(); i++) {
             tblTickets.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
-        
-        // Custom renderer for status column
-        tblTickets.getColumnModel().getColumn(4).setCellRenderer(new StatusColumnRenderer());
         
         // Add table to scroll pane
         JScrollPane scrollPane = new JScrollPane(tblTickets);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         pnlTable.add(scrollPane, BorderLayout.CENTER);
-        
-        // Add pagination panel
-        JPanel pnlPagination = createPaginationPanel();
-        pnlTable.add(pnlPagination, BorderLayout.SOUTH);
-        
+
+        // Khi chọn dòng trong bảng thì cập nhật combobox mã vé
+        tblTickets.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && tblTickets.getSelectedRow() != -1) {
+                int row = tblTickets.getSelectedRow();
+                Object maVe = tblTickets.getValueAt(row, 0); // cột 0 là mã vé
+                if (maVe != null) {
+                    cbMaVe.setSelectedItem(maVe.toString());
+                }
+            }
+        });
+
         return pnlTable;
     }
     
-    private JPanel createPaginationPanel() {
-        JPanel pnlPagination = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 10));
-        
-        JButton btnFirst = createPaginationButton("<<");
-        JButton btnPrev = createPaginationButton("<");
-        JButton btnPage1 = createPaginationButton("1");
-        JButton btnPage2 = createPaginationButton("2");
-        JButton btnPage3 = createPaginationButton("3");
-        JButton btnNext = createPaginationButton(">");
-        JButton btnLast = createPaginationButton(">>");
-        
-        // Style current page button
-        btnPage1.setBackground(new Color(52, 152, 219));
-        btnPage1.setForeground(Color.WHITE);
-        
-        pnlPagination.add(btnFirst);
-        pnlPagination.add(btnPrev);
-        pnlPagination.add(btnPage1);
-        pnlPagination.add(btnPage2);
-        pnlPagination.add(btnPage3);
-        pnlPagination.add(btnNext);
-        pnlPagination.add(btnLast);
-        
-        return pnlPagination;
-    }
-    
-    private JButton createPaginationButton(String text) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(40, 30));
-        button.setFont(new Font("Arial", Font.BOLD, 12));
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        button.setBackground(Color.WHITE);
-        return button;
-    }
-    
-    private void loadData() {
-        // Clear table
-        tableModel.setRowCount(0);
-        
-        // Add sample data (replace with actual data from database)
-        Object[][] sampleData = {
-            {"V001", "Đắc vũ bóng ma", "Trần Văn Bình", "28/04/2025 20:30", "Đã bán", ""},
-            {"V002", "The smile have left your eyes", "Lê Thị Hương", "28/04/2025 14:00", "Đã dùng", ""},
-            {"V003", "Yêu nhầm bạn thân", "Nguyễn Thành Nam", "30/04/2025 20:30", "Đã hủy", ""},
-            {"V004", "Đắc vũ bóng ma", "Phạm Thị Lan", "02/05/2025 14:00", "Chờ dùng", ""}
-        };
-        
-        for (Object[] row : sampleData) {
-            tableModel.addRow(row);
-        }
-    }
-    
     private void performSearch() {
-        String keyword = txtSearch.getText().trim();
-        String status = (String) cboStatus.getSelectedItem();
-        String timeFilter = (String) cboTimeFilter.getSelectedItem();
-        
-        // Implement search logic here
-        loadData(); // Temporary: just reload all data
-    }
-    
-    // Custom renderer for status column
-    private class StatusColumnRenderer extends DefaultTableCellRenderer {
-        @Override
-        public java.awt.Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            
-            java.awt.Component c = super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
-            
-            setHorizontalAlignment(SwingConstants.CENTER);
-            
-            if (value != null) {
-                String status = value.toString();
-                switch (status) {
-                    case "Đã bán":
-                        setBackground(new Color(46, 204, 113));
-                        setForeground(Color.WHITE);
-                        break;
-                    case "Đã dùng":
-                        setBackground(new Color(52, 152, 219));
-                        setForeground(Color.WHITE);
-                        break;
-                    case "Đã hủy":
-                        setBackground(new Color(231, 76, 60));
-                        setForeground(Color.WHITE);
-                        break;
-                    case "Chờ dùng":
-                        setBackground(new Color(243, 156, 18));
-                        setForeground(Color.WHITE);
-                        break;
-                    default:
-                        setBackground(table.getBackground());
-                        setForeground(table.getForeground());
-                }
+        String maHD = txtMaHD.getText().trim();
+        if (maHD.isEmpty()) {
+            return;
+        }
+        tableModel.setRowCount(0);
+        cbMaVe.removeAllItems();
+        List<ChiTietHD> dsCTHD = chiTietHDDAO.layChiTietHD(maHD);
+        GheDAO gheDAO = new GheDAO();
+        LichChieuDAO lichChieuDAO = new LichChieuDAO();
+        for (ChiTietHD cthd : dsCTHD) {
+            Ve ve = veDAO.timVe(cthd.getMaVe().getMaVe());
+            if (ve != null) {
+                cbMaVe.addItem(ve.getMaVe());
+                Object[] rowData = {
+                    ve.getMaVe(),
+                    gheDAO.timGheTheoMa(ve.getMaGhe().getMaGhe()).getHangGhe(),
+                    lichChieuDAO.timLichChieuTheoMa(ve.getMaLichChieu().getMaLichChieu()).getMaPhong().getMaPhong(),
+                    ve.getMaLichChieu().getMaLichChieu(),
+                    String.format("%,.0f VNĐ", ve.getGia())
+                };
+                tableModel.addRow(rowData);
             }
-            
-            if (isSelected) {
-                setBackground(table.getSelectionBackground());
-                setForeground(table.getSelectionForeground());
-            }
-            
-            return c;
         }
     }
 }

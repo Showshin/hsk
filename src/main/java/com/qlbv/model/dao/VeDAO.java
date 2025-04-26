@@ -105,5 +105,17 @@ public class VeDAO {
         return 0;
     }
 
-
+    public Ve timVe(String maVe) {
+        try (Connection con = db.getConnection();
+             PreparedStatement stmt = con.prepareStatement("{CALL sp_TimVe(?)}")) {
+            stmt.setString(1, maVe);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new Ve(rs.getString("maVe"), new Ghe(rs.getString("maGhe")), new LichChieu(rs.getString("maLichChieu")), rs.getDouble("gia"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

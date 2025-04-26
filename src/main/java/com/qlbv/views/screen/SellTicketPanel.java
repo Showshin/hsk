@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -36,6 +37,7 @@ import com.qlbv.model.dao.VeDAO;
 import com.qlbv.model.entities.Ghe;
 import com.qlbv.model.entities.LichChieu;
 import com.qlbv.model.entities.Phim;
+import com.qlbv.utils.PDFGenerator;
 import com.qlbv.views.AuthPanel;
 import com.qlbv.views.components.MovieCard;
 import com.qlbv.views.components.ShowtimeCard;
@@ -46,34 +48,26 @@ public class SellTicketPanel extends JPanel {
     private JPanel stepPanel;
     private JPanel contentPanel;
     
-    // Các panel cho từng bước
     private JPanel chonPhimPanel;
     private JPanel chonSuatPanel;
     private JPanel chonGhePanel;
     private JPanel thanhToanPanel;
     
-    // Components cho bước chọn phim
     private JPanel movieListPanel;
     private PhimDAO phimDAO;
     
-    // Components cho bước chọn suất chiếu
     private JPanel showtimePanel;
     private LichChieuDAO lichChieuDAO;
     
-    // Components cho bước chọn ghế
     private JPanel seatPanel;
-    
-    // Components cho bước thanh toán
     private JPanel paymentPanel;
     
-    // Thông tin đặt vé
     private Phim selectedMovie;
     private LichChieu selectedShowtime;
     private List<String> selectedSeats;
     
     private GheDAO gheDAO;
     
-    // Components cho bước chọn ghế
     private JLabel movieTitleLabel;
     private JLabel roomLabel;
     private JLabel showtimeLabel;
@@ -85,23 +79,17 @@ public class SellTicketPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        // Khởi tạo DAO
         phimDAO = new PhimDAO();
         lichChieuDAO = new LichChieuDAO();
         gheDAO = new GheDAO();
         
-        // Tạo layout chính
         setupMainLayout();
-        
-        // Tạo các bước
         createStepPanel();
         createContentPanel();
         
-        // Thêm vào panel chính
         add(stepPanel, BorderLayout.NORTH);
         add(contentPanel, BorderLayout.CENTER);
         
-        // Hiển thị bước đầu tiên
         showStep(1);
     }
     
@@ -140,15 +128,12 @@ public class SellTicketPanel extends JPanel {
     private void createContentPanel() {
         contentPanel = new JPanel(cardLayout);
         
-        // Tạo panel cho từng bước
         createChonPhimPanel();
         createChonSuatPanel();
         createChonGhePanel();
         
-        // Khởi tạo thanhToanPanel
         thanhToanPanel = new JPanel(new BorderLayout(10, 10));
         
-        // Thêm vào content panel
         contentPanel.add(chonPhimPanel, "step1");
         contentPanel.add(chonSuatPanel, "step2");
         contentPanel.add(chonGhePanel, "step3");
@@ -157,40 +142,119 @@ public class SellTicketPanel extends JPanel {
     
     private void createChonPhimPanel() {
         chonPhimPanel = new JPanel(new BorderLayout(10, 10));
-        movieListPanel = new JPanel(new GridLayout(0, 3, 10, 10));
         
-        // Load danh sách phim
+        // Thêm panel tìm kiếm
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JTextField searchField = new JTextField(20);
+        searchField.setPreferredSize(new Dimension(200, 30));
+        searchField.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        JButton searchButton = new JButton("Tìm kiếm");
+        searchButton.setFont(new Font("Arial", Font.BOLD, 14));
+        searchButton.setBackground(new Color(52, 152, 219));
+        searchButton.setForeground(Color.WHITE);
+        
+        searchButton.addActionListener(e -> {
+            String keyword = searchField.getText().trim().toLowerCase();
+            movieListPanel.removeAll();
+            List<Phim> movies = phimDAO.layDanhSachPhim();
+            
+            for (Phim movie : movies) {
+                if (movie.getTenPhim().toLowerCase().contains(keyword)) {
+                    MovieCard movieCard = new MovieCard(movie, () -> {
+                        selectedMovie = movie;
+                        loadShowtimes(movie);
+                        showStep(2);
+                    });
+                    movieListPanel.add(movieCard);
+                }
+            }
+            
+            movieListPanel.revalidate();
+            movieListPanel.repaint();
+        });
+        
+        searchPanel.add(new JLabel("Tìm kiếm phim:"));
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+        
+        movieListPanel = new JPanel(new GridLayout(0, 3, 10, 10));
         loadMovies();
         
         JScrollPane scrollPane = new JScrollPane(movieListPanel);
         scrollPane.setBorder(null);
-        chonPhimPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Thêm nút điều hướng
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+
+        JButton backButton = new JButton("Quay lại");
+        backButton.setPreferredSize(new Dimension(120, 40));
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.addActionListener(e -> {
+            resetForm();
+            showStep(1);
+        });
+
         JButton nextButton = new JButton("Tiếp tục");
-        nextButton.addActionListener(e -> showStep(2));
+        nextButton.setPreferredSize(new Dimension(120, 40));
+        nextButton.setFont(new Font("Arial", Font.BOLD, 14));
+        nextButton.setBackground(new Color(46, 204, 113));
+        nextButton.setForeground(Color.WHITE);
+        nextButton.addActionListener(e -> {
+            if (selectedMovie == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn một phim!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                showStep(2);
+            }
+        });
+        
+        buttonPanel.add(backButton);
         buttonPanel.add(nextButton);
+        
+        chonPhimPanel.add(searchPanel, BorderLayout.NORTH);
+        chonPhimPanel.add(scrollPane, BorderLayout.CENTER);
         chonPhimPanel.add(buttonPanel, BorderLayout.SOUTH);
     }
     
     private void createChonSuatPanel() {
         chonSuatPanel = new JPanel(new BorderLayout(10, 10));
-        showtimePanel = new JPanel(new GridLayout(0, 4, 10, 10));
+        showtimePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         
         JScrollPane scrollPane = new JScrollPane(showtimePanel);
         scrollPane.setBorder(null);
         chonSuatPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Thêm nút điều hướng
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton prevButton = new JButton("Quay lại");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+
+        JButton backButton = new JButton("Quay lại");
+        backButton.setPreferredSize(new Dimension(120, 40));
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.addActionListener(e -> {
+            resetForm();
+            showStep(1);
+        });
+
         JButton nextButton = new JButton("Tiếp tục");
+        nextButton.setPreferredSize(new Dimension(120, 40));
+        nextButton.setFont(new Font("Arial", Font.BOLD, 14));
+        nextButton.setBackground(new Color(46, 204, 113));
+        nextButton.setForeground(Color.WHITE);
+        nextButton.addActionListener(e -> {
+            if (selectedShowtime == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn một suất chiếu!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                showStep(3);
+            }
+        });
         
-        prevButton.addActionListener(e -> showStep(1));
-        nextButton.addActionListener(e -> showStep(3));
-        
-        buttonPanel.add(prevButton);
+        buttonPanel.add(backButton);
         buttonPanel.add(nextButton);
         chonSuatPanel.add(buttonPanel, BorderLayout.SOUTH);
     }
@@ -246,7 +310,6 @@ public class SellTicketPanel extends JPanel {
         infoPanel.add(selectedSeat);
         infoPanel.add(new JLabel("Ghế đang chọn"));
         
-        // Thêm biểu tượng cho ghế gặp vấn đề
         JPanel problemSeat = new JPanel();
         problemSeat.setPreferredSize(new Dimension(30, 30));
         problemSeat.setBackground(Color.YELLOW);
@@ -263,7 +326,10 @@ public class SellTicketPanel extends JPanel {
         JButton backButton = new JButton("Quay lại");
         backButton.setPreferredSize(new Dimension(120, 40));
         backButton.setFont(new Font("Arial", Font.BOLD, 14));
-        backButton.addActionListener(e -> showStep(2));
+        backButton.addActionListener(e -> {
+            resetForm();
+            showStep(1);
+        });
 
         JButton nextButton = new JButton("Tiếp tục");
         nextButton.setPreferredSize(new Dimension(120, 40));
@@ -296,7 +362,6 @@ public class SellTicketPanel extends JPanel {
         thanhToanPanel.removeAll();
         thanhToanPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Panel chứa thông tin phim
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY),
@@ -307,7 +372,6 @@ public class SellTicketPanel extends JPanel {
         headerLabel.setFont(new Font("Arial", Font.BOLD, 16));
         headerPanel.add(headerLabel, BorderLayout.NORTH);
 
-        // Panel chứa form thông tin
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(Color.GRAY),
@@ -322,7 +386,6 @@ public class SellTicketPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Cột trái - Thông tin vé
         JPanel leftPanel = new JPanel(new GridBagLayout());
         addFormRow(leftPanel, "Ghế đã chọn:", selectedSeats != null ? String.join(", ", selectedSeats) : "", 0);
         addFormRow(leftPanel, "Số lượng vé:", String.valueOf(selectedSeats != null ? selectedSeats.size() : 0), 1);
@@ -330,14 +393,12 @@ public class SellTicketPanel extends JPanel {
         double giaVe = selectedMovie != null ? selectedMovie.getGiaGoc() : 0;
         addFormRow(leftPanel, "Giá vé:", String.format("%,.0f VNĐ x %d", giaVe, selectedSeats != null ? selectedSeats.size() : 0), 2);
 
-        // Cột phải - Form nhập thông tin
         JPanel rightPanel = new JPanel(new GridBagLayout());
         tenKHField = new JTextField(20);
         sdtField = new JTextField(20);
         addFormInput(rightPanel, "Tên khách hàng:", tenKHField, 0);
         addFormInput(rightPanel, "Số điện thoại:", sdtField, 1);
 
-        // Thêm hai cột vào form panel
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
@@ -346,7 +407,6 @@ public class SellTicketPanel extends JPanel {
         gbc.gridx = 1;
         formPanel.add(rightPanel, gbc);
 
-        // Panel tổng tiền
         JPanel totalPanel = new JPanel(new BorderLayout());
         totalPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
         totalPanel.setBackground(new Color(52, 152, 219));
@@ -357,7 +417,6 @@ public class SellTicketPanel extends JPanel {
         totalLabel.setForeground(Color.WHITE);
         totalLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
-        // Tính tổng tiền: maGhe*heSo + maGhe*heSo
         int soGhe = selectedSeats != null ? selectedSeats.size() : 0;
         double tongTien = (giaVe * soGhe);
         
@@ -369,7 +428,6 @@ public class SellTicketPanel extends JPanel {
         totalPanel.add(totalLabel, BorderLayout.WEST);
         totalPanel.add(totalValue, BorderLayout.EAST);
 
-        // Panel nút điều hướng
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         
         JButton backButton = new JButton("Quay lại");
@@ -387,7 +445,6 @@ public class SellTicketPanel extends JPanel {
         buttonPanel.add(backButton);
         buttonPanel.add(confirmButton);
 
-        // Layout chính
         JPanel mainContent = new JPanel(new BorderLayout(0, 10));
         mainContent.add(headerPanel, BorderLayout.NORTH);
         mainContent.add(formPanel, BorderLayout.CENTER);
@@ -461,7 +518,6 @@ public class SellTicketPanel extends JPanel {
             label.setFont(new Font("Arial", Font.BOLD, 16));
             showtimePanel.add(label);
         } else {
-            // Panel con để chứa các suất chiếu
             JPanel contentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
             contentPanel.setOpaque(false);
             
@@ -477,7 +533,6 @@ public class SellTicketPanel extends JPanel {
                 contentPanel.add(showtimeCard);
             }
             
-            // Thêm panel con vào scrollPane
             showtimePanel.add(contentPanel);
         }
         
@@ -500,11 +555,36 @@ public class SellTicketPanel extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         
+        // Thêm màn hình
+        JPanel screenPanel = new JPanel();
+        screenPanel.setPreferredSize(new Dimension(400, 50));
+        screenPanel.setBackground(new Color(200, 200, 200));
+        screenPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        
+        JLabel screenLabel = new JLabel("MÀN HÌNH");
+        screenLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        screenLabel.setForeground(Color.WHITE);
+        screenPanel.add(screenLabel);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 8;
+        gbc.anchor = GridBagConstraints.CENTER;
+        seatPanel.add(screenPanel, gbc);
+        
+        // Thêm khoảng cách giữa màn hình và hàng ghế
+        gbc.gridy = 1;
+        gbc.gridheight = 1;
+        seatPanel.add(Box.createVerticalStrut(20), gbc);
+        
+        // Reset gridwidth cho các hàng ghế
+        gbc.gridwidth = 1;
+        
         for (int hang = 0; hang < 8; hang++) {
             JLabel rowLabel = new JLabel(String.valueOf((char)('A' + hang)));
             rowLabel.setFont(new Font("Arial", Font.BOLD, 14));
             gbc.gridx = 0;
-            gbc.gridy = hang;
+            gbc.gridy = hang + 2; // +2 vì có màn hình và khoảng cách
             seatPanel.add(rowLabel, gbc);
             
             for (int cot = 0; cot < 7; cot++) {
@@ -515,15 +595,19 @@ public class SellTicketPanel extends JPanel {
                 nutGhe.setOpaque(true);
                 
                 final String[] maGhe = {""};
-                final int[] trangThaiGhe = {0}; // Mặc định là 0 (trống)
+                final int[] trangThaiGhe = {0};
                 
-                // Tìm ghế trong danh sách và lấy trạng thái
                 dsGhe.stream()
                     .filter(ghe -> ghe.getHangGhe().equals(tenGhe))
                     .findFirst()
                     .ifPresent(ghe -> {
                         maGhe[0] = ghe.getMaGhe();
-                        trangThaiGhe[0] = ghe.getTrangThai();
+                        Ghe trangThai = gheDAO.kiemTraTrangThaiGhe(ghe.getMaGhe(), selectedShowtime.getMaLichChieu());
+                        if (trangThai != null) {
+                            trangThaiGhe[0] = trangThai.getTrangThai();
+                        } else {
+                            trangThaiGhe[0] = ghe.getTrangThai();
+                        }
                     });
                 
                 if (trangThaiGhe[0] == 1) {
@@ -537,7 +621,7 @@ public class SellTicketPanel extends JPanel {
                 nutGhe.addActionListener(e -> handleSeatSelection(nutGhe, maGhe[0], tenGhe));
                 
                 gbc.gridx = cot + 1;
-                gbc.gridy = hang;
+                gbc.gridy = hang + 2; // +2 vì có màn hình và khoảng cách
                 seatPanel.add(nutGhe, gbc);
             }
         }
@@ -572,18 +656,18 @@ public class SellTicketPanel extends JPanel {
         }
         
         if (nutGhe.isSelected()) {
-            selectedSeats.add(!maGhe.isEmpty() ? maGhe : tenGhe);
+            selectedSeats.add(tenGhe); // Lưu hàng ghế để hiển thị
             nutGhe.setBackground(new Color(120, 180, 240));
             nutGhe.setForeground(Color.BLACK);
             nutGhe.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         } else {
-            selectedSeats.remove(!maGhe.isEmpty() ? maGhe : tenGhe);
+            selectedSeats.remove(tenGhe);
             setupAvailableSeat(nutGhe);
         }
+    
     }
     
     private void showStep(int step) {
-        // Cập nhật hiển thị các bước
         Component[] steps = stepPanel.getComponents();
         for (int i = 0; i < steps.length; i++) {
             JLabel label = (JLabel) steps[i];
@@ -603,8 +687,10 @@ public class SellTicketPanel extends JPanel {
         cardLayout.show(contentPanel, "step" + step);
     }
     
+    /**
+     * Xử lý quá trình thanh toán và tạo hóa đơn
+     */
     private void processPayment() {
-        // Kiểm tra thông tin nhập
         String tenKH = tenKHField.getText().trim();
         String sdt = sdtField.getText().trim();
         
@@ -617,10 +703,8 @@ public class SellTicketPanel extends JPanel {
         }
 
         try {
-            // 1. Tạo mã KH mới
             String maKH = "KH" + System.currentTimeMillis();
             
-            // 2. Lưu thông tin khách hàng
             KhachHangDAO khachHangDAO = new KhachHangDAO();
             boolean kqLuuKH = khachHangDAO.themKhachHang(maKH, tenKH, sdt);
             
@@ -628,35 +712,40 @@ public class SellTicketPanel extends JPanel {
                 throw new Exception("Không thể lưu thông tin khách hàng!");
             }
             
-            // 3. Tạo vé cho từng ghế đã chọn
             VeDAO veDAO = new VeDAO();
             GheDAO gheDAO = new GheDAO();
             List<String> danhSachMaVe = new ArrayList<>();
             
-            for (String maGhe : selectedSeats) {
-                // Kiểm tra ghế có tồn tại không
-                Ghe ghe = gheDAO.timGheTheoMa(maGhe);
+            // Lấy danh sách ghế theo hàng ghế
+            List<Ghe> dsGhe = gheDAO.layDanhSachGheTheoPhong(selectedShowtime.getMaPhong().getMaPhong());
+            
+            for (String hangGhe : selectedSeats) {
+                // Tìm mã ghế tương ứng với hàng ghế
+                Ghe ghe = dsGhe.stream()
+                    .filter(g -> g.getHangGhe().equals(hangGhe))
+                    .findFirst()
+                    .orElse(null);
+                
                 if (ghe == null) {
-                    throw new Exception("Không tìm thấy ghế " + maGhe);
+                    throw new Exception("Không tìm thấy ghế " + hangGhe);
                 }
                 
-                String maVe = "VE" + System.currentTimeMillis() + "_" + maGhe;
-                double giaVe = veDAO.tinhGiaVe(maGhe, selectedMovie.getMaPhim());
+                String maVe = "VE" + System.currentTimeMillis() + "_" + ghe.getMaGhe();
+                double giaVe = veDAO.tinhGiaVe(ghe.getMaGhe(), selectedMovie.getMaPhim());
                 
                 boolean kqTaoVe = veDAO.themVe(
                     maVe,
-                    maGhe,
+                    ghe.getMaGhe(),
                     selectedShowtime.getMaLichChieu(),
                     giaVe
                 );
                 
                 if (!kqTaoVe) {
-                    throw new Exception("Không thể tạo vé cho ghế " + maGhe);
+                    throw new Exception("Không thể tạo vé cho ghế " + hangGhe);
                 }
                 
-                // Cập nhật trạng thái ghế thành đã có người đặt
                 boolean kqCapNhatGhe = gheDAO.suaGhe(
-                    maGhe,
+                    ghe.getMaGhe(),
                     ghe.getMaPhong().getMaPhong(),
                     ghe.getHangGhe(),
                     ghe.getHeSo(),
@@ -664,13 +753,12 @@ public class SellTicketPanel extends JPanel {
                 );
                 
                 if (!kqCapNhatGhe) {
-                    throw new Exception("Không thể cập nhật trạng thái ghế " + maGhe);
+                    throw new Exception("Không thể cập nhật trạng thái ghế " + hangGhe);
                 }
                 
                 danhSachMaVe.add(maVe);
             }
             
-            // 4. Tạo hóa đơn
             String maHD = "HD" + System.currentTimeMillis();
             double tongTien = selectedMovie.getGiaGoc() * selectedSeats.size();
             
@@ -687,7 +775,6 @@ public class SellTicketPanel extends JPanel {
                 throw new Exception("Không thể lưu hóa đơn!");
             }
             
-            // 5. Tạo chi tiết hóa đơn cho từng vé
             ChiTietHDDAO chiTietHDDAO = new ChiTietHDDAO();
             for (String maVe : danhSachMaVe) {
                 boolean kqLuuCTHD = chiTietHDDAO.themChiTietHD(maHD, maVe);
@@ -696,14 +783,30 @@ public class SellTicketPanel extends JPanel {
                 }
             }
             
-            // Hiển thị thông báo thành công
+            String fileName = "HoaDon_" + maHD + ".pdf";
+            PDFGenerator.generateInvoice(
+                fileName,
+                maHD,
+                maKH,
+                tenKH,
+                sdt,
+                selectedMovie,
+                selectedShowtime,
+                selectedSeats, // Truyền danh sách hàng ghế
+                danhSachMaVe,
+                tongTien,
+                AuthPanel.getNhanVienHienTai().getTenNV()
+            );
+            
             JOptionPane.showMessageDialog(this,
-                String.format("Đặt vé thành công!\nMã hóa đơn: %s\nSố lượng vé: %d\nTổng tiền: %,.0f VNĐ",
-                    maHD, danhSachMaVe.size(), tongTien),
+                String.format("Đặt vé thành công!\nMã hóa đơn: %s\nSố lượng vé: %d\nTổng tiền: %,.0f VNĐ\n\nHóa đơn đã được lưu tại: %s",
+                    maHD, danhSachMaVe.size(), tongTien, fileName),
                 "Thông báo",
                 JOptionPane.INFORMATION_MESSAGE);
                 
-            // Reset và quay về bước 1
+            // Cập nhật lại sơ đồ ghế sau khi đặt vé thành công
+            createSeatMap();
+            
             resetForm();
             showStep(1);
             
@@ -722,9 +825,34 @@ public class SellTicketPanel extends JPanel {
         selectedSeats = null;
         if (tenKHField != null) tenKHField.setText("");
         if (sdtField != null) sdtField.setText("");
+        
+        // Reset các panel
+        if (movieListPanel != null) {
+            movieListPanel.removeAll();
+            loadMovies();
+            movieListPanel.revalidate();
+            movieListPanel.repaint();
+        }
+        
+        if (showtimePanel != null) {
+            showtimePanel.removeAll();
+            showtimePanel.revalidate();
+            showtimePanel.repaint();
+        }
+        
+        if (seatPanel != null) {
+            seatPanel.removeAll();
+            createSeatMap();
+            seatPanel.revalidate();
+            seatPanel.repaint();
+        }
+        
+        // Reset các label
+        if (movieTitleLabel != null) movieTitleLabel.setText("");
+        if (roomLabel != null) roomLabel.setText("");
+        if (showtimeLabel != null) showtimeLabel.setText("");
     }
 
-    // Phương thức cập nhật thông tin tiêu đề
     private void updateSeatPanelInfo() {
         if (selectedMovie != null && selectedShowtime != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM/yyyy");

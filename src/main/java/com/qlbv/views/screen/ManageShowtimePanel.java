@@ -68,21 +68,17 @@ public class ManageShowtimePanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         setBackground(new Color(240, 242, 245));
         
-        // Khởi tạo DAO
         lichChieuDAO = new LichChieuDAO();
         phimDAO = new PhimDAO();
         phongDAO = new PhongDAO();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         
-        // Tạo các thành phần
         createFormPanel();
         createTablePanel();
         
-        // Thêm các thành phần vào panel chính
         add(formPanel, BorderLayout.NORTH);
         add(tablePanel, BorderLayout.CENTER);
         
-        // Load dữ liệu vào bảng
         loadTableData();
     }
     
@@ -103,7 +99,6 @@ public class ManageShowtimePanel extends JPanel {
         formPanel.setMinimumSize(new Dimension(800, 200));
         formPanel.setPreferredSize(new Dimension(900, 200));
         
-        // Panel cho các trường nhập liệu
         JPanel inputPanel = new JPanel(new GridBagLayout());
         inputPanel.setOpaque(false);
         
@@ -111,7 +106,6 @@ public class ManageShowtimePanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
         
-        // Mã lịch chiếu
         gbc.gridx = 0;
         gbc.gridy = 0;
         inputPanel.add(new JLabel("Mã lịch chiếu:"), gbc);
@@ -121,7 +115,6 @@ public class ManageShowtimePanel extends JPanel {
         gbc.gridy = 0;
         inputPanel.add(maLichChieuField, gbc);
         
-        // Phim
         gbc.gridx = 0;
         gbc.gridy = 1;
         inputPanel.add(new JLabel("Phim:"), gbc);
@@ -132,7 +125,6 @@ public class ManageShowtimePanel extends JPanel {
         gbc.gridy = 1;
         inputPanel.add(phimComboBox, gbc);
         
-        // Phòng
         gbc.gridx = 2;
         gbc.gridy = 0;
         inputPanel.add(new JLabel("Phòng:"), gbc);
@@ -143,7 +135,6 @@ public class ManageShowtimePanel extends JPanel {
         gbc.gridy = 0;
         inputPanel.add(phongComboBox, gbc);
         
-        // Thời gian BD
         gbc.gridx = 2;
         gbc.gridy = 1;
         inputPanel.add(new JLabel("Thời gian bắt đầu (dd/MM/yyyy HH:mm):"), gbc);
@@ -153,7 +144,6 @@ public class ManageShowtimePanel extends JPanel {
         gbc.gridy = 1;
         inputPanel.add(thoiGianBDField, gbc);
         
-        // Thời gian KT
         gbc.gridx = 0;
         gbc.gridy = 2;
         inputPanel.add(new JLabel("Thời gian kết thúc (dd/MM/yyyy HH:mm):"), gbc);
@@ -167,12 +157,10 @@ public class ManageShowtimePanel extends JPanel {
         formPanel.add(inputPanel);
         formPanel.add(Box.createVerticalStrut(10));
         
-        // Thay thế SplitPane bằng một panel có BorderLayout
         JPanel buttonSearchPanel = new JPanel(new BorderLayout(10, 0));
         buttonSearchPanel.setOpaque(false);
         buttonSearchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         
-        // Panel trái cho các nút chức năng
         JPanel leftButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         leftButtonPanel.setOpaque(false);
         
@@ -201,7 +189,6 @@ public class ManageShowtimePanel extends JPanel {
         leftButtonPanel.add(deleteButton);
         leftButtonPanel.add(clearButton);
         
-        // Panel phải cho tìm kiếm theo tên phim
         JPanel rightSearchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         rightSearchPanel.setOpaque(false);
         
@@ -219,11 +206,9 @@ public class ManageShowtimePanel extends JPanel {
         rightSearchPanel.add(searchField);
         rightSearchPanel.add(searchButton);
         
-        // Thêm các panel vào panel chính
         buttonSearchPanel.add(leftButtonPanel, BorderLayout.WEST);
         buttonSearchPanel.add(rightSearchPanel, BorderLayout.EAST);
         
-        // Thêm sự kiện cho các nút
         addButton.addActionListener(e -> addShowtime());
         updateButton.addActionListener(e -> updateShowtime());
         deleteButton.addActionListener(e -> deleteShowtime());
@@ -247,7 +232,6 @@ public class ManageShowtimePanel extends JPanel {
         ));
         tablePanel.setBackground(Color.WHITE);
         
-        // Tạo model và bảng
         String[] columns = {"Mã lịch chiếu", "Phim", "Phòng", "Thời gian bắt đầu", "Thời gian kết thúc"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -262,7 +246,6 @@ public class ManageShowtimePanel extends JPanel {
         showtimeTable.setRowHeight(25);
         showtimeTable.setAutoCreateRowSorter(true);
         
-        // Thêm sự kiện chọn dòng trong bảng
         showtimeTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -301,17 +284,13 @@ public class ManageShowtimePanel extends JPanel {
     }
     
     private void loadTableData() {
-        // Xóa dữ liệu cũ
         tableModel.setRowCount(0);
         
-        // Lấy danh sách lịch chiếu
         List<LichChieu> dsLichChieu = lichChieuDAO.layDanhSachLichChieu();
         
-        // Thêm dữ liệu vào bảng
         for (LichChieu lichChieu : dsLichChieu) {
             Phim phim = phimDAO.timPhim(lichChieu.getMaPhim().getMaPhim());
             
-            // Tìm phòng trong danh sách tất cả phòng
             String maPhong = lichChieu.getMaPhong().getMaPhong();
             Phong phong = null;
             for (Phong p : phongDAO.layDanhSachPhong()) {
@@ -346,11 +325,9 @@ public class ManageShowtimePanel extends JPanel {
         thoiGianBDField.setText(thoiGianBD);
         thoiGianKTField.setText(thoiGianKT);
         
-        // Khóa trường mã lịch chiếu khi chọn một dòng
         maLichChieuField.setEditable(false);
         maLichChieuField.setBackground(new Color(240, 240, 240));
         
-        // Chọn phim tương ứng trong combobox
         for (int i = 0; i < phimComboBox.getItemCount(); i++) {
             Phim phim = phimComboBox.getItemAt(i);
             if (phim.getTenPhim().equals(tenPhim)) {
@@ -359,7 +336,6 @@ public class ManageShowtimePanel extends JPanel {
             }
         }
         
-        // Chọn phòng tương ứng trong combobox
         for (int i = 0; i < phongComboBox.getItemCount(); i++) {
             Phong phong = phongComboBox.getItemAt(i);
             if (phong.getTenPhong().equals(tenPhong)) {
@@ -369,16 +345,17 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
+    /**
+     * Thêm lịch chiếu mới vào cơ sở dữ liệu
+     */
     private void addShowtime() {
         try {
-            // Lấy dữ liệu từ các trường nhập
             String maLichChieu = maLichChieuField.getText().trim();
             Phim phim = (Phim) phimComboBox.getSelectedItem();
             Phong phong = (Phong) phongComboBox.getSelectedItem();
             Date thoiGianBD = dateFormat.parse(thoiGianBDField.getText().trim());
             Date thoiGianKT = dateFormat.parse(thoiGianKTField.getText().trim());
             
-            // Kiểm tra dữ liệu nhập
             if (maLichChieu.isEmpty() || phim == null || phong == null) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -389,7 +366,6 @@ public class ManageShowtimePanel extends JPanel {
                 return;
             }
             
-            // Thêm lịch chiếu mới
             boolean result = lichChieuDAO.themLichChieu(
                 maLichChieu,
                 phim.getMaPhim(),
@@ -399,7 +375,6 @@ public class ManageShowtimePanel extends JPanel {
             );
             
             if (result) {
-                // Thêm trực tiếp vào bảng thay vì load lại toàn bộ dữ liệu
                 Object[] rowData = {
                     maLichChieu,
                     phim.getTenPhim(),
@@ -421,23 +396,23 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
+    /**
+     * Cập nhật thông tin lịch chiếu trong cơ sở dữ liệu
+     */
     private void updateShowtime() {
         try {
-            // Lấy dòng đang chọn
             int selectedRow = showtimeTable.getSelectedRow();
             if (selectedRow < 0) {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn lịch chiếu cần cập nhật!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Lấy dữ liệu từ các trường nhập
             String maLichChieu = maLichChieuField.getText().trim();
             Phim phim = (Phim) phimComboBox.getSelectedItem();
             Phong phong = (Phong) phongComboBox.getSelectedItem();
             Date thoiGianBD = dateFormat.parse(thoiGianBDField.getText().trim());
             Date thoiGianKT = dateFormat.parse(thoiGianKTField.getText().trim());
             
-            // Kiểm tra dữ liệu nhập
             if (maLichChieu.isEmpty() || phim == null || phong == null) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -448,7 +423,6 @@ public class ManageShowtimePanel extends JPanel {
                 return;
             }
             
-            // Cập nhật lịch chiếu
             boolean result = lichChieuDAO.suaLichChieu(
                 maLichChieu,
                 phim.getMaPhim(),
@@ -458,7 +432,6 @@ public class ManageShowtimePanel extends JPanel {
             );
             
             if (result) {
-                // Cập nhật trực tiếp trong bảng thay vì load lại toàn bộ dữ liệu
                 int row = showtimeTable.getSelectedRow();
                 tableModel.setValueAt(maLichChieu, row, 0);
                 tableModel.setValueAt(phim.getTenPhim(), row, 1);
@@ -478,8 +451,10 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
+    /**
+     * Xóa lịch chiếu khỏi cơ sở dữ liệu
+     */
     private void deleteShowtime() {
-        // Lấy dòng đang chọn
         int selectedRow = showtimeTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn lịch chiếu cần xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -488,7 +463,6 @@ public class ManageShowtimePanel extends JPanel {
         
         String maLichChieu = tableModel.getValueAt(selectedRow, 0).toString();
         
-        // Xác nhận xóa
         int option = JOptionPane.showConfirmDialog(
             this,
             "Bạn có chắc chắn muốn xóa lịch chiếu này?",
@@ -499,7 +473,6 @@ public class ManageShowtimePanel extends JPanel {
         if (option == JOptionPane.YES_OPTION) {
             boolean result = lichChieuDAO.xoaLichChieu(maLichChieu);
             if (result) {
-                // Xóa trực tiếp từ bảng thay vì load lại toàn bộ dữ liệu
                 int actualRow = showtimeTable.convertRowIndexToModel(selectedRow);
                 tableModel.removeRow(actualRow);
                 
@@ -519,17 +492,13 @@ public class ManageShowtimePanel extends JPanel {
             return;
         }
         
-        // Xóa dữ liệu cũ
         tableModel.setRowCount(0);
         
-        // Lấy danh sách lịch chiếu
         List<LichChieu> dsLichChieu = lichChieuDAO.layDanhSachLichChieu();
         
-        // Lọc và thêm dữ liệu vào bảng - CHỈ TÌM THEO TÊN PHIM
         for (LichChieu lichChieu : dsLichChieu) {
             Phim phim = phimDAO.timPhim(lichChieu.getMaPhim().getMaPhim());
             
-            // Tìm phòng trong danh sách tất cả phòng
             String maPhong = lichChieu.getMaPhong().getMaPhong();
             Phong phong = null;
             for (Phong p : phongDAO.layDanhSachPhong()) {
@@ -542,7 +511,6 @@ public class ManageShowtimePanel extends JPanel {
             String tenPhim = phim != null ? phim.getTenPhim() : "";
             String tenPhong = phong != null ? phong.getTenPhong() : "";
             
-            // Chỉ tìm kiếm theo tên phim
             if (tenPhim.toLowerCase().contains(keyword)) {
                 Object[] rowData = {
                     lichChieu.getMaLichChieu(),
@@ -565,7 +533,6 @@ public class ManageShowtimePanel extends JPanel {
         if (phongComboBox.getItemCount() > 0) phongComboBox.setSelectedIndex(0);
         showtimeTable.clearSelection();
         
-        // Mở khóa trường mã lịch chiếu khi xóa rỗng
         maLichChieuField.setEditable(true);
         maLichChieuField.setBackground(Color.WHITE);
     }

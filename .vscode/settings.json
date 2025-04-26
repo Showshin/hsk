@@ -1,3 +1,9 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.compile.nullAnalysis.mode": "disabled",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.warning.serial": "ignore",
+    "java.compile.warning.unused": "ignore",
+    "java.compile.warning.rawtypes": "ignore",
+    "java.compile.warning.unchecked": "ignore"
 }

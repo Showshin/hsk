@@ -31,9 +31,6 @@ public class Ve {
 		this.maVe = maVe;
 	}
 
-
-
-
 	public String getMaVe() {
 		return maVe;
 	}

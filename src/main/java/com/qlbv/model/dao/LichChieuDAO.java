@@ -156,4 +156,25 @@ public class LichChieuDAO {
         }
         return dsPhim;
     }
+
+    //Tìm lịch chiếu theo mã lịch chiếu
+    public LichChieu timLichChieuTheoMa(String maLichChieu) {
+        try (Connection con = db.getConnection();
+             PreparedStatement stmt = con.prepareStatement("{CALL sp_TimLichChieuTheoMa(?)}")) {
+            stmt.setString(1, maLichChieu);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new LichChieu(
+                    rs.getString("maLichChieu"),
+                    new Phim(rs.getString("maPhim")),
+                    new Phong(rs.getString("maPhong")),
+                    rs.getTimestamp("thoiGianBD"),
+                    rs.getTimestamp("thoiGianKT")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

@@ -53,7 +53,7 @@ public class ManageMoviePanel extends JPanel {
     private JTextField txtImagePath;
     private JButton btnBrowseImage;
     private JFileChooser fileChooser;
-    private JComboBox<LoaiPhim> cboMovieType;
+    private JComboBox<String> cboMovieType;
     private JSpinner spnDuration, spnAgeLimit, spnBasePrice;
     
     private PhimDAO phimDAO;
@@ -251,7 +251,7 @@ public class ManageMoviePanel extends JPanel {
         // Button Panel
         JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         
-        btnAdd = createButton("Thêm mới", new Color(46, 204, 113));
+        btnAdd = createButton("Thêm", new Color(46, 204, 113));
         btnSave = createButton("Lưu", new Color(52, 152, 219));
         btnDelete = createButton("Xóa", new Color(231, 76, 60));
         btnClear = createButton("Làm mới", new Color(155, 89, 182));
@@ -408,7 +408,7 @@ public class ManageMoviePanel extends JPanel {
         // Add movie types to combobox
         cboMovieType.removeAllItems();
         for (LoaiPhim loaiPhim : danhSachLoaiPhim) {
-            cboMovieType.addItem(loaiPhim);
+            cboMovieType.addItem(loaiPhim.getTenLoai());
         }
         
         updateTableData();
@@ -477,8 +477,8 @@ public class ManageMoviePanel extends JPanel {
         if (selectedPhim != null) {
             // Set the movie type in the combo box
             for (int i = 0; i < cboMovieType.getItemCount(); i++) {
-                LoaiPhim loaiPhim = cboMovieType.getItemAt(i);
-                if (loaiPhim.getMaLoai().equals(selectedPhim.getLoaiPhim().getMaLoai())) {
+                String loaiPhim = cboMovieType.getItemAt(i);
+                if (loaiPhim.equals(selectedPhim.getLoaiPhim().getTenLoai())) {
                     cboMovieType.setSelectedIndex(i);
                     break;
                 }
@@ -523,13 +523,14 @@ public class ManageMoviePanel extends JPanel {
         }
     }
     
+    /**
+     * Thêm phim mới vào cơ sở dữ liệu
+     */
     private void addMovie() {
-        // Validate inputs
         if (!validateInputs()) {
             return;
         }
         
-        // Get values from form
         String maPhim = txtMovieId.getText().trim();
         String tenPhim = txtMovieName.getText().trim();
         LoaiPhim loaiPhim = (LoaiPhim) cboMovieType.getSelectedItem();
@@ -538,7 +539,6 @@ public class ManageMoviePanel extends JPanel {
         double giaGoc = (Double) spnBasePrice.getValue();
         String img = txtImagePath.getText().trim();
         
-        // Check if movie ID already exists
         for (Phim phim : danhSachPhim) {
             if (phim.getMaPhim().equals(maPhim)) {
                 JOptionPane.showMessageDialog(this, 
@@ -549,7 +549,6 @@ public class ManageMoviePanel extends JPanel {
             }
         }
         
-        // Add movie to database
         boolean success = phimDAO.themPhim(maPhim, loaiPhim.getMaLoai(), tenPhim, thoiLuong, gioiHanTuoi, giaGoc, img);
         
         if (success) {
@@ -560,18 +559,19 @@ public class ManageMoviePanel extends JPanel {
         }
     }
     
+    /**
+     * Cập nhật thông tin phim trong cơ sở dữ liệu
+     */
     private void saveMovie() {
         if (!isEditMode) {
             addMovie();
             return;
         }
         
-        // Validate inputs
         if (!validateInputs()) {
             return;
         }
         
-        // Get values from form
         String maPhim = txtMovieId.getText().trim();
         String tenPhim = txtMovieName.getText().trim();
         LoaiPhim loaiPhim = (LoaiPhim) cboMovieType.getSelectedItem();
@@ -580,7 +580,6 @@ public class ManageMoviePanel extends JPanel {
         double giaGoc = (Double) spnBasePrice.getValue();
         String img = txtImagePath.getText().trim();
         
-        // Update movie in database
         boolean success = phimDAO.suaPhim(maPhim, loaiPhim.getMaLoai(), tenPhim, thoiLuong, gioiHanTuoi, giaGoc, img);
         
         if (success) {
@@ -591,8 +590,10 @@ public class ManageMoviePanel extends JPanel {
         }
     }
     
+    /**
+     * Xóa phim khỏi cơ sở dữ liệu
+     */
     private void deleteMovie() {
-        // Lấy các dòng đã chọn
         int[] selectedRows = tblMovies.getSelectedRows();
         
         if (selectedRows.length == 0) {
@@ -602,7 +603,6 @@ public class ManageMoviePanel extends JPanel {
             return;
         }
         
-        // Tạo danh sách các phim sẽ xóa
         StringBuilder movieListText = new StringBuilder();
         List<String> movieIdsToDelete = new ArrayList<>();
         
@@ -613,20 +613,16 @@ public class ManageMoviePanel extends JPanel {
             movieListText.append("- ").append(tenPhim).append(" (Mã: ").append(maPhim).append(")\n");
         }
         
-        // Hiển thị xác nhận xóa
         int confirm = JOptionPane.showConfirmDialog(this, 
                 "Bạn có chắc chắn muốn xóa " + selectedRows.length + " phim sau?\n\n" + movieListText.toString() +
                 "\nCảnh báo: Hành động này sẽ xóa vĩnh viễn phim khỏi cơ sở dữ liệu!", 
                 "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            // Xóa từng phim trong danh sách
             int successCount = 0;
             List<String> failedMovies = new ArrayList<>();
             
             for (String maPhim : movieIdsToDelete) {
-                // Trực tiếp gọi phương thức xóa từ PhimDAO
-                // Điều này sẽ xóa phim khỏi cơ sở dữ liệu
                 boolean success = phimDAO.xoaPhim(maPhim);
                 
                 if (success) {
@@ -641,7 +637,6 @@ public class ManageMoviePanel extends JPanel {
                 }
             }
             
-            // Thông báo kết quả
             if (successCount >0) {
                 JOptionPane.showMessageDialog(this, 
                         "Đã xóa thành công " + successCount + " phim khỏi cơ sở dữ liệu.", 
@@ -661,13 +656,11 @@ public class ManageMoviePanel extends JPanel {
                         "Kết quả xóa", JOptionPane.WARNING_MESSAGE);
             }
             
-            // Cập nhật lại bảng dữ liệu từ database
             loadData();
         }
     }
     
     private void deleteSelectedMovies() {
-        // Sử dụng phương thức deleteMovie đã được cập nhật
         deleteMovie();
     }
     

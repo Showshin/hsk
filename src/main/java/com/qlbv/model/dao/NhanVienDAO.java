@@ -1,10 +1,5 @@
 package com.qlbv.model.dao;
 
-
-
-
-
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +13,7 @@ import com.qlbv.model.entities.NhanVien;
 
 
 public class NhanVienDAO {
-    private final ConnectDB db;
+    private ConnectDB db;
 
     public NhanVienDAO() {
         db = ConnectDB.getInstance();
@@ -38,7 +33,7 @@ public class NhanVienDAO {
     }
 
     public boolean suaNhanVien(String maNV, String tenNV, String sdt) {
-        try (Connection con = db.getConnection();
+        try (Connection con = ConnectDB.getConnection();
              PreparedStatement stmt = con.prepareStatement("{CALL sp_SuaNhanVien(?,?,?)}")) {
             stmt.setString(1, maNV);
             stmt.setString(2, tenNV);
