@@ -17,6 +17,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -30,10 +31,16 @@ import javax.swing.table.JTableHeader;
 import com.qlbv.model.dao.ChiTietHDDAO;
 import com.qlbv.model.dao.GheDAO;
 import com.qlbv.model.dao.HoaDonDAO;
+import com.qlbv.model.dao.KhachHangDAO;
 import com.qlbv.model.dao.LichChieuDAO;
+import com.qlbv.model.dao.PhimDAO;
 import com.qlbv.model.dao.VeDAO;
 import com.qlbv.model.entities.ChiTietHD;
+import com.qlbv.model.entities.Ghe;
+import com.qlbv.model.entities.LichChieu;
+import com.qlbv.model.entities.Phim;
 import com.qlbv.model.entities.Ve;
+import com.qlbv.utils.PDFGenerator;
 
 public class ManageTicketPanel extends JPanel {
     
@@ -128,7 +135,7 @@ public class ManageTicketPanel extends JPanel {
         btnPrint.setForeground(Color.WHITE);
         btnPrint.setFont(new Font("Arial", Font.BOLD, 13));
         pnlButtons.add(btnPrint);
-        btnDelete = new JButton("Xóa vé");
+        btnDelete = new JButton("Hủy vé");
         btnDelete.setPreferredSize(new Dimension(100, 30));
         btnDelete.setBackground(new Color(231, 76, 60));
         btnDelete.setForeground(Color.WHITE);
@@ -141,14 +148,66 @@ public class ManageTicketPanel extends JPanel {
         // Add action listeners
         btnSearch.addActionListener(e -> performSearch());
         btnPrint.addActionListener(e -> {
-            // TODO: Thêm chức năng in vé
+            String maVe = (String) cbMaVe.getSelectedItem();
+            if (maVe != null && !maVe.isEmpty()) {
+                //Dao
+                HoaDonDAO hoaDonDAO = new HoaDonDAO();
+                KhachHangDAO khachHangDAO = new KhachHangDAO();
+                PhimDAO phimDAO = new PhimDAO();
+                LichChieuDAO lichChieuDAO = new LichChieuDAO();
+                GheDAO gheDAO = new GheDAO();
+
+                Ve ve = veDAO.timVe(maVe);
+                LichChieu lichChieu = lichChieuDAO.timLichChieuTheoMa(ve.getMaLichChieu().getMaLichChieu());
+                Phim phim = phimDAO.timPhim(lichChieu.getMaPhim().getMaPhim());
+                Ghe ghe = gheDAO.timGheTheoMa(ve.getMaGhe().getMaGhe());
+
+                PDFGenerator.generateTicket(
+                    "tickets/ticket" + maVe + ".pdf",
+                    maVe,
+                    phim,
+                    lichChieu,
+                    ghe.getHangGhe()
+                );
+                JOptionPane.showMessageDialog(this,
+                    "Vé đã được in thành công!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn vé cần in!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            }
         });
         btnDelete.addActionListener(e -> {
             String maVe = (String) cbMaVe.getSelectedItem();
             if (maVe != null && !maVe.isEmpty()) {
-                if (veDAO.xoaVe(maVe)) {
-                    performSearch();
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "Bạn có chắc chắn muốn Hủy vé này không?",
+                    "Xác nhận Hủy",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+                
+                if (confirm == JOptionPane.YES_OPTION) {
+                    if (veDAO.xoaVe(maVe)) {
+                        JOptionPane.showMessageDialog(this,
+                            "Hủy vé thành công!",
+                            "Thông báo",
+                            JOptionPane.INFORMATION_MESSAGE);
+                        performSearch();
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                            "Hủy vé thất bại!",
+                            "Lỗi",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
                 }
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn vé cần Hủy!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
             }
         });
         

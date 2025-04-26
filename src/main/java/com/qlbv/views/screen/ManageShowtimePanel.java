@@ -479,7 +479,7 @@ public class ManageShowtimePanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Xóa lịch chiếu thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 clearForm();
             } else {
-                JOptionPane.showMessageDialog(this, "Xóa lịch chiếu thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Lịch chiếu đã có người đặt xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

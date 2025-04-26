@@ -505,9 +505,9 @@ public class ManageMoviePanel extends JPanel {
         if (cboMovieType.getItemCount() > 0) {
             cboMovieType.setSelectedIndex(0);
         }
-        spnDuration.setValue(90);
-        spnAgeLimit.setValue(13);
-        spnBasePrice.setValue(75000.0);
+        spnDuration.setValue(0);
+        spnAgeLimit.setValue(0);
+        spnBasePrice.setValue(0.0);
         txtImagePath.setText("");
         
         // Reset edit mode

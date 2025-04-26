@@ -783,7 +783,7 @@ public class SellTicketPanel extends JPanel {
                 }
             }
             
-            String fileName = "HoaDon_" + maHD + ".pdf";
+            String fileName = "invoices/HoaDon_" + maHD + ".pdf";
             PDFGenerator.generateInvoice(
                 fileName,
                 maHD,
@@ -792,15 +792,15 @@ public class SellTicketPanel extends JPanel {
                 sdt,
                 selectedMovie,
                 selectedShowtime,
-                selectedSeats, // Truyền danh sách hàng ghế
+                selectedSeats,
                 danhSachMaVe,
                 tongTien,
                 AuthPanel.getNhanVienHienTai().getTenNV()
             );
-            
+
             JOptionPane.showMessageDialog(this,
-                String.format("Đặt vé thành công!\nMã hóa đơn: %s\nSố lượng vé: %d\nTổng tiền: %,.0f VNĐ\n\nHóa đơn đã được lưu tại: %s",
-                    maHD, danhSachMaVe.size(), tongTien, fileName),
+                String.format("Tạo hóa đơn thành công!\nMã hóa đơn: %s\nSố lượng vé: %d\nTổng tiền: %,.0f VNĐ",
+                    maHD, danhSachMaVe.size(), tongTien),
                 "Thông báo",
                 JOptionPane.INFORMATION_MESSAGE);
                 
