@@ -1,0 +1,8 @@
+# Bỏ qua tất cả file pdf
+*.pdf
+
+# Bỏ qua folder target
+target/
+
+# Bỏ qua folder .vscode
+.vscode/
