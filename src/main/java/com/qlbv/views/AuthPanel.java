@@ -112,7 +112,10 @@ public class AuthPanel extends JFrame {
         formPanel.add(Box.createVerticalStrut(20));
         formPanel.add(createInputRow("Mật khẩu:", passwordField));
         formPanel.add(Box.createVerticalStrut(20));
-
+        
+        usernameField.setText("nhanvien1");
+        passwordField.setText("pass123");
+        
         JButton loginBtn = new JButton("Đăng nhập");
         loginBtn.addActionListener(e -> {
             String username = usernameField.getText();
@@ -173,7 +176,7 @@ public class AuthPanel extends JFrame {
         formPanel.add(Box.createVerticalStrut(15));
         formPanel.add(createInputRow("Nhập lại:", confirmPasswordField));
         formPanel.add(Box.createVerticalStrut(20));
-
+        
         JButton registerBtn = new JButton("Xác nhận");
         registerBtn.addActionListener(e -> {
             String name = nameField.getText().trim();

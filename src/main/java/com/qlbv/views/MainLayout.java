@@ -29,6 +29,7 @@ import com.qlbv.views.screen.ManageMoviePanel;
 import com.qlbv.views.screen.ManageShowtimePanel;
 import com.qlbv.views.screen.ManageTicketPanel;
 import com.qlbv.views.screen.SellTicketPanel; 
+import com.qlbv.views.screen.StatisticPanel;
 
 public class MainLayout extends JFrame {
     private JPanel contentPanel;
@@ -65,6 +66,7 @@ public class MainLayout extends JFrame {
         contentPanel.add(new ManageShowtimePanel(), "SHOWTIME");
         contentPanel.add(new SellTicketPanel(), "TICKET");
         contentPanel.add(new ManageTicketPanel(), "TICKETS");
+        contentPanel.add(new StatisticPanel(), "STATISTIC");
 
         // Thêm contentPanel vào frame
         add(contentPanel, BorderLayout.CENTER);
@@ -164,7 +166,8 @@ public class MainLayout extends JFrame {
             {"Dashboard", "DASHBOARD"},
             {"Quản lý phim", "MOVIE"},
             {"Quản lý lịch chiếu", "SHOWTIME"},
-            {"Quản lý vé", "TICKETS"}
+            {"Quản lý vé", "TICKETS"},
+            {"Thống kê", "STATISTIC"}
         };
     
         for (String[] item : menuItems) {
@@ -243,6 +246,7 @@ public class MainLayout extends JFrame {
             case "SHOWTIME": return "Quản lý lịch chiếu";
             case "TICKETS" : return "Quản lý vé";
             case "TICKET": return "Bán vé";
+            case "STATISTIC": return "Thống kê";
             default: return "";
         }
     }
