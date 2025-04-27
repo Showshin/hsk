@@ -64,10 +64,10 @@ public class ManageTicketPanel extends JPanel {
         chiTietHDDAO = new ChiTietHDDAO();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         
-        initializeUI();
+        init();
     }
     
-    private void initializeUI() {
+    private void init() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
