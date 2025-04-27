@@ -56,13 +56,15 @@ public class PhimDAO {
         try (Connection con = db.getConnection();
              PreparedStatement stmt = con.prepareStatement("{CALL sp_XoaPhim(?)}")) {
             stmt.setString(1, maPhim);
-            return stmt.executeUpdate() > 0;
+            stmt.execute(); // dùng execute thay vì kiểm tra số dòng
+            return true; // chỉ cần không lỗi là true
         } catch (SQLException e) {
             e.printStackTrace();
             System.err.println("Không thể xóa phim mã " + maPhim + ": " + e.getMessage());
             return false;
         }
     }
+    
 
     public Phim timPhim(String maPhim) {
         try (Connection con = db.getConnection();

@@ -3,11 +3,7 @@ package com.qlbv.views.screen;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Timestamp;
@@ -17,8 +13,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -28,7 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.qlbv.model.dao.LichChieuDAO;
@@ -41,7 +34,7 @@ import com.qlbv.model.entities.Phong;
 public class ManageShowtimePanel extends JPanel {
     private JPanel formPanel;
     private JPanel tablePanel;
-    private JTable showtimeTable;
+    private JTable table_LichChieu;
     private DefaultTableModel tableModel;
     
     private JTextField maLichChieuField;
@@ -64,7 +57,8 @@ public class ManageShowtimePanel extends JPanel {
     private SimpleDateFormat dateFormat;
     
     public ManageShowtimePanel() {
-        setLayout(new BorderLayout(10, 10));
+        
+        setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         setBackground(new Color(240, 242, 245));
         
@@ -73,8 +67,8 @@ public class ManageShowtimePanel extends JPanel {
         phongDAO = new PhongDAO();
         dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         
-        createFormPanel();
-        createTablePanel();
+        taoFormNhapDuLieu();
+        taoBangChuaLichChieu();
         
         add(formPanel, BorderLayout.NORTH);
         add(tablePanel, BorderLayout.CENTER);
@@ -82,181 +76,137 @@ public class ManageShowtimePanel extends JPanel {
         loadTableData();
     }
     
-    private void createFormPanel() {
+    private void taoFormNhapDuLieu() {
         formPanel = new JPanel();
-        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-                "Thông tin lịch chiếu",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 14)
-            ),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+        formPanel.setLayout(null); 
+        formPanel.setBorder(BorderFactory.createTitledBorder("Thông tin lịch chiếu"));
         formPanel.setBackground(Color.WHITE);
-        formPanel.setMinimumSize(new Dimension(800, 200));
-        formPanel.setPreferredSize(new Dimension(900, 200));
-        
-        JPanel inputPanel = new JPanel(new GridBagLayout());
-        inputPanel.setOpaque(false);
-        
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
-        
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        inputPanel.add(new JLabel("Mã lịch chiếu:"), gbc);
-        
-        maLichChieuField = new JTextField(15);
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        inputPanel.add(maLichChieuField, gbc);
-        
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        inputPanel.add(new JLabel("Phim:"), gbc);
-        
+        formPanel.setMinimumSize(new Dimension(800, 300));
+        formPanel.setPreferredSize(new Dimension(900, 300));
+    
+       //MA LICH CHIEU
+        JLabel maLichChieuLabel = new JLabel("Mã lịch chiếu:");
+        maLichChieuLabel.setBounds(20, 30, 120, 25);
+        formPanel.add(maLichChieuLabel);
+    
+        maLichChieuField = new JTextField();
+        maLichChieuField.setBounds(150, 30, 200, 25);
+        formPanel.add(maLichChieuField);
+    
+        // PHIM
+        JLabel phimLabel = new JLabel("Phim:");
+        phimLabel.setBounds(400, 30, 50, 25);
+        formPanel.add(phimLabel);
+    
         phimComboBox = new JComboBox<>();
+        phimComboBox.setBounds(450, 30, 200, 25);
         loadPhimComboBox();
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        inputPanel.add(phimComboBox, gbc);
-        
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        inputPanel.add(new JLabel("Phòng:"), gbc);
-        
+        formPanel.add(phimComboBox);
+    
+        // PHONG
+        JLabel phongLabel = new JLabel("Phòng:");
+        phongLabel.setBounds(20, 70, 120, 25);
+        formPanel.add(phongLabel);
+    
         phongComboBox = new JComboBox<>();
+        phongComboBox.setBounds(150, 70, 200, 25);
         loadPhongComboBox();
-        gbc.gridx = 3;
-        gbc.gridy = 0;
-        inputPanel.add(phongComboBox, gbc);
-        
-        gbc.gridx = 2;
-        gbc.gridy = 1;
-        inputPanel.add(new JLabel("Thời gian bắt đầu (dd/MM/yyyy HH:mm):"), gbc);
-        
-        thoiGianBDField = new JTextField(20);
-        gbc.gridx = 3;
-        gbc.gridy = 1;
-        inputPanel.add(thoiGianBDField, gbc);
-        
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        inputPanel.add(new JLabel("Thời gian kết thúc (dd/MM/yyyy HH:mm):"), gbc);
-        
-        thoiGianKTField = new JTextField(10);
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.gridwidth = 3;
-        inputPanel.add(thoiGianKTField, gbc);
-        
-        formPanel.add(inputPanel);
-        formPanel.add(Box.createVerticalStrut(10));
-        
-        JPanel buttonSearchPanel = new JPanel(new BorderLayout(10, 0));
-        buttonSearchPanel.setOpaque(false);
-        buttonSearchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-        
-        JPanel leftButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        leftButtonPanel.setOpaque(false);
-        
+        formPanel.add(phongComboBox);
+  
+        // THOI GIAN BAT DAU
+        JLabel thoiGianBDLabel = new JLabel("Thời gian bắt đầu (dd/MM/yyyy HH:mm):");
+        thoiGianBDLabel.setBounds(400, 70, 250, 25);
+        formPanel.add(thoiGianBDLabel);
+    
+        thoiGianBDField = new JTextField();
+        thoiGianBDField.setBounds(660, 70, 200, 25);
+        formPanel.add(thoiGianBDField);
+    
+        // THOI GIAN KET THUC
+        JLabel thoiGianKTLabel = new JLabel("Thời gian kết thúc (dd/MM/yyyy HH:mm):");
+        thoiGianKTLabel.setBounds(400, 110, 250, 25);
+        formPanel.add(thoiGianKTLabel);
+    
+        thoiGianKTField = new JTextField();
+        thoiGianKTField.setBounds(660, 110, 200, 25);
+        formPanel.add(thoiGianKTField);
+    
+     
+        // Nút thêm, cập nhật, xóa, xóa rỗng
         addButton = new JButton("Thêm");
         addButton.setBackground(new Color(46, 204, 113));
         addButton.setForeground(Color.WHITE);
-        addButton.setFocusPainted(false);
-        
+        addButton.setBounds(20, 160, 100, 30);
+        formPanel.add(addButton);
+    
         updateButton = new JButton("Cập nhật");
         updateButton.setBackground(new Color(52, 152, 219));
         updateButton.setForeground(Color.WHITE);
-        updateButton.setFocusPainted(false);
-        
+        updateButton.setBounds(130, 160, 100, 30);
+        formPanel.add(updateButton);
+    
         deleteButton = new JButton("Xóa");
         deleteButton.setBackground(new Color(231, 76, 60));
         deleteButton.setForeground(Color.WHITE);
-        deleteButton.setFocusPainted(false);
-        
+        deleteButton.setBounds(240, 160, 100, 30);
+        formPanel.add(deleteButton);
+    
         clearButton = new JButton("Xóa rỗng");
         clearButton.setBackground(new Color(243, 156, 18));
         clearButton.setForeground(Color.WHITE);
-        clearButton.setFocusPainted(false);
-        
-        leftButtonPanel.add(addButton);
-        leftButtonPanel.add(updateButton);
-        leftButtonPanel.add(deleteButton);
-        leftButtonPanel.add(clearButton);
-        
-        JPanel rightSearchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        rightSearchPanel.setOpaque(false);
-        
+        clearButton.setBounds(350, 160, 100, 30);
+        formPanel.add(clearButton);
+    
+        // Ô tìm kiếm + Button tìm kiếm
         JLabel searchLabel = new JLabel("Tìm kiếm phim:");
         searchLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        
-        searchField = new JTextField(15);
-        
+        searchLabel.setBounds(500, 160, 120, 30);
+        formPanel.add(searchLabel);
+    
+        searchField = new JTextField();
+        searchField.setBounds(620, 160, 150, 30);
+        formPanel.add(searchField);
+    
         searchButton = new JButton("Tìm");
         searchButton.setBackground(new Color(155, 89, 182));
         searchButton.setForeground(Color.WHITE);
         searchButton.setFocusPainted(false);
-        
-        rightSearchPanel.add(searchLabel);
-        rightSearchPanel.add(searchField);
-        rightSearchPanel.add(searchButton);
-        
-        buttonSearchPanel.add(leftButtonPanel, BorderLayout.WEST);
-        buttonSearchPanel.add(rightSearchPanel, BorderLayout.EAST);
-        
-        addButton.addActionListener(e -> addShowtime());
-        updateButton.addActionListener(e -> updateShowtime());
-        deleteButton.addActionListener(e -> deleteShowtime());
+        searchButton.setBounds(780, 160, 70, 30);
+        formPanel.add(searchButton);
+    
+        // Gán action cho các nút
+        addButton.addActionListener(e -> addLichChieu());
+        updateButton.addActionListener(e -> capNhatLichChieu());
+        deleteButton.addActionListener(e -> xoaLichChieu());
+        clearButton.addActionListener(e -> xoaRong());
         searchButton.addActionListener(e -> searchShowtime());
-        clearButton.addActionListener(e -> clearForm());
-        
-        formPanel.add(buttonSearchPanel);
     }
     
-    private void createTablePanel() {
+    
+    private void taoBangChuaLichChieu() {
         tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-                "Danh sách lịch chiếu",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 14)
-            ),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Danh sách lịch chiếu"));
         tablePanel.setBackground(Color.WHITE);
         
         String[] columns = {"Mã lịch chiếu", "Phim", "Phòng", "Thời gian bắt đầu", "Thời gian kết thúc"};
-        tableModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
+        tableModel = new DefaultTableModel(columns, 0);
+        table_LichChieu = new JTable(tableModel);
+        table_LichChieu.setSelectionBackground(new Color(52, 152, 219));
+        table_LichChieu.setSelectionForeground(Color.WHITE);
+        table_LichChieu.setRowHeight(25);
+
         
-        showtimeTable = new JTable(tableModel);
-        showtimeTable.setSelectionBackground(new Color(52, 152, 219));
-        showtimeTable.setSelectionForeground(Color.WHITE);
-        showtimeTable.setRowHeight(25);
-        showtimeTable.setAutoCreateRowSorter(true);
-        
-        showtimeTable.addMouseListener(new MouseAdapter() {
+        table_LichChieu.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int selectedRow = showtimeTable.getSelectedRow();
+                int selectedRow = table_LichChieu.getSelectedRow();
                 if (selectedRow >= 0) {
-                    showSelectedShowtime(selectedRow);
+                    chonDongDuaVaoInput(selectedRow);
                 }
             }
         });
         
-        JScrollPane scrollPane = new JScrollPane(showtimeTable);
+        JScrollPane scrollPane = new JScrollPane(table_LichChieu);
         scrollPane.setPreferredSize(new Dimension(tablePanel.getWidth(), 350));
         tablePanel.add(scrollPane, BorderLayout.CENTER);
     }
@@ -314,7 +264,7 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
-    private void showSelectedShowtime(int row) {
+    private void chonDongDuaVaoInput(int row) {
         String maLichChieu = tableModel.getValueAt(row, 0).toString();
         String tenPhim = tableModel.getValueAt(row, 1).toString();
         String tenPhong = tableModel.getValueAt(row, 2).toString();
@@ -345,10 +295,8 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
-    /**
-     * Thêm lịch chiếu mới vào cơ sở dữ liệu
-     */
-    private void addShowtime() {
+
+    private void addLichChieu() {
         try {
             String maLichChieu = maLichChieuField.getText().trim();
             Phim phim = (Phim) phimComboBox.getSelectedItem();
@@ -385,7 +333,7 @@ public class ManageShowtimePanel extends JPanel {
                 tableModel.addRow(rowData);
                 
                 JOptionPane.showMessageDialog(this, "Thêm lịch chiếu thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                clearForm();
+                xoaRong();
             } else {
                 JOptionPane.showMessageDialog(this, "Thêm lịch chiếu thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
@@ -396,12 +344,10 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
-    /**
-     * Cập nhật thông tin lịch chiếu trong cơ sở dữ liệu
-     */
-    private void updateShowtime() {
+
+    private void capNhatLichChieu() {
         try {
-            int selectedRow = showtimeTable.getSelectedRow();
+            int selectedRow = table_LichChieu.getSelectedRow();
             if (selectedRow < 0) {
                 JOptionPane.showMessageDialog(this, "Vui lòng chọn lịch chiếu cần cập nhật!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -432,7 +378,7 @@ public class ManageShowtimePanel extends JPanel {
             );
             
             if (result) {
-                int row = showtimeTable.getSelectedRow();
+                int row = table_LichChieu.getSelectedRow();
                 tableModel.setValueAt(maLichChieu, row, 0);
                 tableModel.setValueAt(phim.getTenPhim(), row, 1);
                 tableModel.setValueAt(phong.getTenPhong(), row, 2);
@@ -440,7 +386,7 @@ public class ManageShowtimePanel extends JPanel {
                 tableModel.setValueAt(dateFormat.format(thoiGianKT), row, 4);
                 
                 JOptionPane.showMessageDialog(this, "Cập nhật lịch chiếu thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                clearForm();
+                xoaRong();
             } else {
                 JOptionPane.showMessageDialog(this, "Cập nhật lịch chiếu thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
@@ -451,11 +397,9 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
-    /**
-     * Xóa lịch chiếu khỏi cơ sở dữ liệu
-     */
-    private void deleteShowtime() {
-        int selectedRow = showtimeTable.getSelectedRow();
+
+    private void xoaLichChieu() {
+        int selectedRow = table_LichChieu.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn lịch chiếu cần xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
@@ -463,9 +407,7 @@ public class ManageShowtimePanel extends JPanel {
         
         String maLichChieu = tableModel.getValueAt(selectedRow, 0).toString();
         
-        int option = JOptionPane.showConfirmDialog(
-            this,
-            "Bạn có chắc chắn muốn xóa lịch chiếu này?",
+        int option = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa lịch chiếu này?",
             "Xác nhận xóa",
             JOptionPane.YES_NO_OPTION
         );
@@ -473,11 +415,11 @@ public class ManageShowtimePanel extends JPanel {
         if (option == JOptionPane.YES_OPTION) {
             boolean result = lichChieuDAO.xoaLichChieu(maLichChieu);
             if (result) {
-                int actualRow = showtimeTable.convertRowIndexToModel(selectedRow);
-                tableModel.removeRow(actualRow);
+                int dongHienTai = table_LichChieu.convertRowIndexToModel(selectedRow);
+                tableModel.removeRow(dongHienTai);
                 
                 JOptionPane.showMessageDialog(this, "Xóa lịch chiếu thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                clearForm();
+                xoaRong();
             } else {
                 JOptionPane.showMessageDialog(this, "Lịch chiếu đã có người đặt xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
@@ -524,14 +466,14 @@ public class ManageShowtimePanel extends JPanel {
         }
     }
     
-    private void clearForm() {
+    private void xoaRong() {
         maLichChieuField.setText("");
         thoiGianBDField.setText("");
         thoiGianKTField.setText("");
         searchField.setText("");
         if (phimComboBox.getItemCount() > 0) phimComboBox.setSelectedIndex(0);
         if (phongComboBox.getItemCount() > 0) phongComboBox.setSelectedIndex(0);
-        showtimeTable.clearSelection();
+        table_LichChieu.clearSelection();
         
         maLichChieuField.setEditable(true);
         maLichChieuField.setBackground(Color.WHITE);

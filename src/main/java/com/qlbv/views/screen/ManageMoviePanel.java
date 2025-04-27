@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,12 +20,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
@@ -85,7 +81,7 @@ public class ManageMoviePanel extends JPanel {
         pnlContent.add(pnlForm, BorderLayout.WEST);
         
         
-        JPanel pnlMovieTable = createMovieTablePanel();
+        JPanel pnlMovieTable = bangDanhSachPhim();
         pnlContent.add(pnlMovieTable, BorderLayout.CENTER);
         
         add(pnlContent, BorderLayout.CENTER);
@@ -230,14 +226,12 @@ public class ManageMoviePanel extends JPanel {
         jlbImagePath.setBounds(0,210,100,20);
         pnlImagePath.setBounds(100,210,200,20);
     
-        // Add a wide Clear button
+        
         JButton btnClearFields = new JButton("Xóa trắng form");
-        btnClearFields.setPreferredSize(new Dimension(300, 35));
-        btnClearFields.setBackground(new Color(243, 156, 18)); // Orange color
+        btnClearFields.setBackground(new Color(243, 156, 18)); 
         btnClearFields.setForeground(Color.WHITE);
-        btnClearFields.setFocusPainted(false);
         btnClearFields.setFont(new Font("Arial", Font.BOLD, 14));
-        btnClearFields.addActionListener(e -> clearForm());
+        btnClearFields.addActionListener(e -> xoaRong());
         btnClearFields.setBounds(0, 250, 300, 35);
         
         pnlFields.add(btnClearFields);
@@ -269,8 +263,8 @@ public class ManageMoviePanel extends JPanel {
         
         pnlForm.add(pnlFields, BorderLayout.CENTER);
         
-        // Button Panel
-        JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+    
+        JPanel pnlButtons = new JPanel(new FlowLayout());
         
         btnAdd = createButton("Thêm", new Color(46, 204, 113));
         btnSave = createButton("Lưu", new Color(52, 152, 219));
@@ -279,63 +273,51 @@ public class ManageMoviePanel extends JPanel {
         
         pnlButtons.add(btnAdd);
         pnlButtons.add(btnSave);
-        pnlButtons.add(btnDelete);
-        pnlButtons.add(btnClear);
+
         
         pnlForm.add(pnlButtons, BorderLayout.SOUTH);
         
         btnAdd.addActionListener(e -> addMovie());
         btnSave.addActionListener(e -> saveMovie());
-        btnDelete.addActionListener(e -> deleteMovie());
-        btnClear.addActionListener(e -> clearForm());
         
         return pnlForm;
     }
     
-    private JPanel createMovieTablePanel() {
-        JPanel pnlMovieTable = new JPanel(new BorderLayout(0, 10));
+    private JPanel bangDanhSachPhim() {
+        JPanel pnlMovieTable = new JPanel(new BorderLayout());
         
-        JPanel pnlSearch = new JPanel(new BorderLayout(10, 0));
+        JPanel pnlSearch = new JPanel(new BorderLayout());
         
         txtSearch = new JTextField();
         txtSearch.setPreferredSize(new Dimension(0, 35));
         txtSearch.setFont(new Font("Arial", Font.PLAIN, 14));
-        txtSearch.setBorder(BorderFactory.createCompoundBorder(
-                txtSearch.getBorder(), 
-                BorderFactory.createEmptyBorder(0, 5, 0, 5)));
-        txtSearch.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    performSearch();
-                }
-            }
-        });
+        txtSearch.setBorder(BorderFactory.createLineBorder(new Color(52, 152, 219), 1));
+
         
         btnSearch = new JButton("Tìm kiếm");
         btnSearch.setPreferredSize(new Dimension(120, 35));
         btnSearch.setBackground(new Color(52, 152, 219));
         btnSearch.setForeground(Color.WHITE);
-        btnSearch.setFocusPainted(false);
+
         btnSearch.setFont(new Font("Arial", Font.BOLD, 14));
-        btnSearch.addActionListener(e -> performSearch());
+        btnSearch.addActionListener(e -> timKiemTheoTenPhim());
         
         pnlSearch.add(txtSearch, BorderLayout.CENTER);
         pnlSearch.add(btnSearch, BorderLayout.EAST);
         
-        JPanel pnlTableActions = new JPanel(new BorderLayout(0, 10));
+        JPanel pnlTableActions = new JPanel(new BorderLayout());
         pnlTableActions.add(pnlSearch, BorderLayout.NORTH);
         
-        JButton btnBulkDelete = new JButton("Xóa phim");
-        btnBulkDelete.setPreferredSize(new Dimension(150, 35));
-        btnBulkDelete.setBackground(new Color(231, 76, 60));
-        btnBulkDelete.setForeground(Color.WHITE);
-        btnBulkDelete.setFocusPainted(false);
-        btnBulkDelete.setFont(new Font("Arial", Font.BOLD, 14));
-        btnBulkDelete.addActionListener(e -> deleteSelectedMovies());
+        JButton btnXoaPhim = new JButton("Xóa phim");
+        btnXoaPhim.setPreferredSize(new Dimension(150, 35));
+        btnXoaPhim.setBackground(new Color(231, 76, 60));
+        btnXoaPhim.setForeground(Color.WHITE);
+        btnXoaPhim.setFocusPainted(false);
+        btnXoaPhim.setFont(new Font("Arial", Font.BOLD, 14));
+        btnXoaPhim.addActionListener(e -> xoaPhimDaChon());
         
         JPanel pnlBulkActions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlBulkActions.add(btnBulkDelete);
+        pnlBulkActions.add(btnXoaPhim);
         pnlTableActions.add(pnlBulkActions, BorderLayout.SOUTH);
         
         pnlMovieTable.add(pnlTableActions, BorderLayout.NORTH);
@@ -355,7 +337,6 @@ public class ManageMoviePanel extends JPanel {
         tableModel.addColumn("Giá vé");
         
         tblMovies = new JTable(tableModel);
-        tblMovies.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         tblMovies.setRowHeight(35);
         tblMovies.setFont(new Font("Arial", Font.PLAIN, 14));
         
@@ -365,34 +346,27 @@ public class ManageMoviePanel extends JPanel {
                 if (!e.getValueIsAdjusting()) {
                     int selectedRow = tblMovies.getSelectedRow();
                     if (selectedRow != -1 && tblMovies.getSelectedRowCount() == 1) {
-                        populateFormFromSelectedRow(selectedRow);
+                        chonDongDuaVaoInput(selectedRow);
                     } else if (tblMovies.getSelectedRowCount() > 1) {
-                        clearForm();
+                        xoaRong();
                         btnDelete.setEnabled(true);
                     }
                 }
             }
         });
         
+
+        //SET màu xanh cho cột đầu tiên
         JTableHeader header = tblMovies.getTableHeader();
         header.setFont(new Font("Arial", Font.BOLD, 14));
         header.setBackground(new Color(52, 152, 219));
         header.setForeground(Color.WHITE);
         header.setPreferredSize(new Dimension(0, 40));
-        
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        for (int i = 0; i < tblMovies.getColumnCount(); i++) {
-            tblMovies.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
-        
+
         tblMovies.getColumnModel().getColumn(0).setPreferredWidth(80);
         tblMovies.getColumnModel().getColumn(1).setPreferredWidth(200);
         
         JScrollPane scrollPane = new JScrollPane(tblMovies);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setPreferredSize(new Dimension(0, 35 * 10 + 40)); 
         pnlMovieTable.add(scrollPane, BorderLayout.CENTER);
         
         return pnlMovieTable;
@@ -418,7 +392,7 @@ public class ManageMoviePanel extends JPanel {
         }
         
         updateTableData();
-        clearForm();
+        xoaRong();
     }
     
     private void updateTableData() {
@@ -445,7 +419,7 @@ public class ManageMoviePanel extends JPanel {
         }
     }
     
-    private void performSearch() {
+    private void timKiemTheoTenPhim() {
         String keyword = txtSearch.getText().trim();
         if (keyword.isEmpty()) {
             loadData();
@@ -465,11 +439,11 @@ public class ManageMoviePanel extends JPanel {
         updateTableData();
     }
     
-    private void populateFormFromSelectedRow(int selectedRow) {
-        txtMovieId.setText(tblMovies.getValueAt(selectedRow, 0).toString());
-        txtMovieName.setText(tblMovies.getValueAt(selectedRow, 1).toString());
+    private void chonDongDuaVaoInput(int dongDuocChon) {
+        txtMovieId.setText(tblMovies.getValueAt(dongDuocChon, 0).toString());
+        txtMovieName.setText(tblMovies.getValueAt(dongDuocChon, 1).toString());
         
-        String maPhim = tblMovies.getValueAt(selectedRow, 0).toString();
+        String maPhim = tblMovies.getValueAt(dongDuocChon, 0).toString();
         Phim selectedPhim = null;
         for (Phim phim : danhSachPhim) {
             if (phim.getMaPhim().equals(maPhim)) {
@@ -500,7 +474,7 @@ public class ManageMoviePanel extends JPanel {
         }
     }
     
-    private void clearForm() {
+    private void xoaRong() {
         txtMovieId.setText("");
         txtMovieName.setText("");
         if (cboMovieType.getItemCount() > 0) {
@@ -621,76 +595,39 @@ public class ManageMoviePanel extends JPanel {
         }
     }
     
-    /**
-     * Xóa phim khỏi cơ sở dữ liệu
-     */
+
+     // Xóa phim khỏi cơ sở dữ liệu
+
     private void deleteMovie() {
-        int[] selectedRows = tblMovies.getSelectedRows();
+        int selectedRow = tblMovies.getSelectedRow();
         
-        if (selectedRows.length == 0) {
+        if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, 
-                    "Vui lòng chọn ít nhất một phim để xóa", 
+                    "Vui lòng chọn một phim để xóa", 
                     "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        StringBuilder movieListText = new StringBuilder();
-        List<String> movieIdsToDelete = new ArrayList<>();
-        
-        for (int row : selectedRows) {
-            String maPhim = tblMovies.getValueAt(row, 0).toString();
-            String tenPhim = tblMovies.getValueAt(row, 1).toString();
-            movieIdsToDelete.add(maPhim);
-            movieListText.append("- ").append(tenPhim).append(" (Mã: ").append(maPhim).append(")\n");
-        }
-        
+ 
+            String maPhim = tblMovies.getValueAt(selectedRow, 0).toString();
+ 
         int confirm = JOptionPane.showConfirmDialog(this, 
                 "Bạn có chắc chắn muốn xóa ", 
                 "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         
-        if (confirm == JOptionPane.YES_OPTION) {
-            int successCount = 0;
-            List<String> failedMovies = new ArrayList<>();
-            
-            for (String maPhim : movieIdsToDelete) {
-                boolean success = phimDAO.xoaPhim(maPhim);
-                
-                if (success) {
-                    successCount++;
+        if (confirm == JOptionPane.YES_OPTION) {  
+                boolean success = phimDAO.xoaPhim(maPhim);  
+                System.out.println(success);
+                if (success==true) {
+                    JOptionPane.showMessageDialog(this, "Xóa phim thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    for (int row : selectedRows) {
-                        if (tblMovies.getValueAt(row, 0).toString().equals(maPhim)) {
-                            failedMovies.add(tblMovies.getValueAt(row, 1).toString() + " (Mã: " + maPhim + ")");
-                            break;
-                        }
-                    }
+                    JOptionPane.showMessageDialog(this, "Xóa phim thất bại. Vui lòng thử lại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
             }
-            
-            if (successCount >0) {
-                JOptionPane.showMessageDialog(this, 
-                        "Đã xóa thành công " + successCount + " phim khỏi cơ sở dữ liệu.", 
-                        "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                        successCount= 0;
-            } else {
-                StringBuilder message = new StringBuilder();
-                message.append("Đã xóa thành công ").append(successCount).append(" phim.\n");
-                message.append("Không thể xóa ").append(failedMovies.size()).append(" phim sau:\n");
-                
-                for (String movie : failedMovies) {
-                    message.append("- ").append(movie).append("\n");
-                }
-                message.append("\nNguyên nhân có thể do phim đang được sử dụng ở nơi khác hoặc có ràng buộc trong cơ sở dữ liệu.");
-                
-                JOptionPane.showMessageDialog(this, message.toString(), 
-                        "Kết quả xóa", JOptionPane.WARNING_MESSAGE);
-            }
-            
             loadData();
-        }
-    }
+}
     
-    private void deleteSelectedMovies() {
+    
+    private void xoaPhimDaChon() {
         deleteMovie();
     }
     
